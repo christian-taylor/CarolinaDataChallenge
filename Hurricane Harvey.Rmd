@@ -1,0 +1,98 @@
+---
+title: "Carolina Data Challenge: Hurricane Harvey"
+author: "Christian Taylor"
+date: "September 16, 2017"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(dplyr)
+library(maps)
+library(mapdata)
+library(readr)
+Harvey_tweets <- read_csv("C:/Users/taylorch/OneDrive/Carolina Data Challenge/carolinadata-hurricane-harvey/Harvey_tweets.csv")
+needs <- read_delim("C:/Users/taylorch/OneDrive/Carolina Data Challenge/carolinadata-hurricane-harvey/needs.csv", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+shelters <- read_delim("C:/Users/taylorch/OneDrive/Carolina Data Challenge/carolinadata-hurricane-harvey/shelters.csv", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+```{r}
+location <- select(needs, are_supplies_needed, are_volunteers_needed, longitude, latitude)
+
+supplies_vol <- filter(location, are_supplies_needed %in% c("True", "False"), are_volunteers_needed %in% c("True", "False"), longitude, latitude)
+supplies_vol
+```
+
+
+
+```{r}
+map("state", "Texas", col = "lightskyblue", fill = TRUE)
+```
+
+```{r}
+map("state", "Texas", xlim = c(-100, -90), ylim = c(25, 32), col = "lightskyblue", fill = TRUE)
+```
+
+##Map of Needs
+
+```{r}
+map("state", "Texas", xlim = c(-97, -93), ylim = c(28, 31), col = "grey90", fill = TRUE)
+points(supplies_vol$longitude, supplies_vol$latitude, pch=19, col="blue", cex=.5)
+```
+
+*Blue = A location that communicated its needs*
+
+###Map of Needs (Color Coordinated)
+
+```{r}
+both_sv <- filter(supplies_vol, are_supplies_needed == "True", are_volunteers_needed == "True")
+neither_sv <- filter(supplies_vol, are_supplies_needed == "False", are_volunteers_needed == "False")
+s_notv <- filter(supplies_vol, are_supplies_needed == "True", are_volunteers_needed == "False")
+nots_v <- filter(supplies_vol, are_supplies_needed == "False", are_volunteers_needed == "True")
+
+
+map("state", "Texas", xlim = c(-97, -93), ylim = c(28, 31), col = "grey90", fill = TRUE)
+points(both_sv$longitude, both_sv$latitude, pch=19, col="red", cex=0.5)
+points(s_notv$longitude, s_notv$latitude, pch=19, col="darkgreen", cex=0.5)
+points(nots_v$longitude, nots_v$latitude, pch=19, col="darkorange", cex=0.5)
+points(neither_sv$longitude, neither_sv$latitude, pch=19, col="orchid", cex=.5)
+```
+
+*Red = Location in need of both Supplies and Volunteers*
+*Orchid = Location in need of neither Supplies nor Volunteers*
+*Green = Location in need of Supplies, but not Volunteers*
+*Orange = Location in need of Volunteers, but not Supplies*
+
+##Map of Shelters Across United States
+
+```{r}
+shel_locations <- filter(shelters, accepting == "True" | accepting == "False", latitude, longitude)
+map("worldHires", "usa", xlim = c(-125, -65), ylim = c(25, 50), col = "gray90", fill = TRUE)
+points(shel_locations$longitude, shel_locations$latitude, pch=19, col="violet", cex=0.5)
+```
+
+*Purple = Hurricane Shelter*
+
+##Map of Shelters in the Texas-Louisiana Region
+```{r}
+accepting_shel <- filter(shel_locations, accepting == "True")
+not_accepting_shel <- filter(shel_locations, accepting == "False")
+map("state", "Texas", xlim = c(-107, -88), ylim = c(25, 37), col="gray90", fill = TRUE)
+map("state", "Louisiana", xlim = c(-107, -88), ylim = c(25,37), col = "gray90", fill = TRUE, add = TRUE)
+points(accepting_shel$longitude, accepting_shel$latitude, pch=19, col="blue", cex=0.3)
+points(not_accepting_shel$longitude, not_accepting_shel$latitude, pch=19, col="red", cex=0.3)
+```
+
+*Blue = Shelter accepting more people.*
+*Red = Shelter no longer accepting people.*
+
+##Map of Shelters around the Greater Houston Area
+```{r}
+map("state", "Texas", xlim = c(-97, -93), ylim = c(28, 31), col = "gray90", fill = TRUE)
+map("state", "Louisiana", xlim = c(-97, -93), ylim = c(28,31), col = "gray 90", fill = TRUE, add = TRUE)
+points(accepting_shel$longitude, accepting_shel$latitude, pch=19, col="blue", cex=0.4)
+points(not_accepting_shel$longitude, not_accepting_shel$latitude, pch=19, col="red", cex=0.4)
+```
+
+*Blue = Shelter accepting more people.*
+*Red = Shelter no longer accepting people.*
